@@ -1,0 +1,151 @@
+#!/usr/bin/env python3
+
+import os
+import json
+from argparse import ArgumentParser, RawTextHelpFormatter
+from getdir import find_match
+import pathlib
+# from getdir import JSON_PATH
+
+def parse_arguments():
+    parser = ArgumentParser(
+        # description="A simple utility to manage projects",
+        formatter_class=RawTextHelpFormatter)
+    parser.add_argument("action", help="""The action. One of the following:
+
+add/+: add a new tag and assign it to directory 'dir'
+update/++: similar to add/+ but will overwrite if tag already exists
+info: show info of a tag
+rm/-: remove a tag
+print: print the path assigned to tag
+
+""")
+    parser.add_argument("tag", help="The tag")
+    parser.add_argument("dir", nargs='?', help="The directory path")
+    return parser.parse_args()
+
+def make_project(proj):
+    """ Initiate a project """
+    os.mkdir(proj)
+    for _dir in ["docs", "writeup", "main", "plots"]:
+        os.mkdir("{}/{}".format(proj, _dir))
+    for _dir in ["bin", "src", "project1"]:
+        os.mkdir("{}/main/{}".format(proj, _dir))
+    os.system("touch {}/README.md".format(proj))
+
+def main(args, is_force=False):
+    json_fn = os.path.expanduser(os.environ['MOVE_JSON'])
+    json_dir = os.path.dirname(json_fn)
+    if not os.path.isdir(json_dir):
+        os.system("mkdir -p " + json_dir)
+    if not os.path.isfile(json_fn):
+        with open(json_fn, 'w') as f:
+            json.dump({}, f, indent=2)
+    with open(json_fn, 'r') as f:
+        data = json.load(f)
+    tag = find_match(data.keys(), args.tag)
+    is_write = False
+    if args.action in ["add", '+']:
+        is_write = True
+        with open(json_fn, 'r') as f:
+            data = json.load(f)
+            if not is_force and args.tag in data:
+                print("{} already defined in projects. Use 'update flag dir' to update a project".format(args.tag))
+                return
+            if args.dir is None:
+                thisdir = os.path.abspath(".")
+            else:
+                thisdir = os.path.abspath(args.dir)
+            dir_dict = {"dir": thisdir}
+            print("Added the following to project {}:".format(args.tag))
+            print(dir_dict)
+            data[args.tag] = dir_dict
+    elif args.action in ["++", "update"]:
+        args.action = "add"
+        main(args, is_force=True)
+    elif args.action in ["rm", '-']:
+        is_write = True
+        with open(json_fn, 'r') as f:
+            data = json.load(f)
+            if args.tag in data.keys():
+                del data[args.tag]
+                print(f"{args.tag} is remove")
+            else:
+                print(f"{args.tag} is not in the project list")
+    elif args.action == "print":
+        if args.tag not in data:
+            print("{} not found in tags".format(args.tag))
+        else:
+            print(data[args.tag]["dir"])
+    elif args.action == "info":
+        with open(json_fn, 'r') as f:
+            data = json.load(f)
+            print(data[args.tag])
+    # elif args.action == "python":
+    #     # initiate a Python project
+    #     make_project(args.tag)
+    # elif args.action == "cp":
+    #     import subprocess
+    #     subprocess.run("pbcopy", universal_newlines=True,
+    #                    input=data[args.tag]["dir"],)
+    #     print(data[args.tag]["dir"], 'copied to clipboard')
+    elif args.action == "start":
+        tag = find_match(data.keys(), args.tag)
+        if tag is None:
+            print("Could not find a matched tag.")
+            return
+        prj = data[tag]
+        os.system("kitty @ launch --type=tab --cwd={} --tab-title '{}'".
+                  format(prj["dir"], tag))
+        if "todo" in prj.keys():
+            text = "TODO: {}".format(prj["todo"])
+        else:
+            text = "TODO:"
+        cmd = r"kitty @ send-text --match-tab title:'{}' 'echo {}\x0d'".format(
+            tag, text)
+        os.system(cmd)
+        if "readme" in prj.keys():
+            readme = prj["readme"]
+            # ext = os.path.splitext()[-1]
+            opn = "open"
+            text = "{} {}".format(opn, prj["readme"])
+        os.chdir(prj["dir"])
+        for readme in ["README.org", "README", "README.md"]:
+            if os.path.isfile(readme):
+                print("open -a Emacs.app " + readme)
+                os.system("open -a Emacs.app " + readme)
+        # if os.path.isfile("README.md"):
+        #     os.system("open README.md")
+        if os.path.isfile("files"):
+            with open("files", 'r') as f:
+                lines = f.readlines()
+            for l in lines:
+                l = l.strip()
+                if len(l) >= 2:
+                    if l[:2] == "# ":
+                        continue
+                cmd = "Unknown file format or file does not exist:"
+                # if is http, open it in browser
+                if l[:4] == "http":
+                    cmd = "open"
+                # if is not http, check if the file exits
+                elif os.path.isfile(l):
+                    ext = pathlib.Path(l).suffix
+                    if ext in ['.pdf', '.png', '.jpg']:
+                        cmd = "open"
+                    else:
+                        cmd = "open -a Emacs.app"
+                elif os.path.isdir(l):
+                    cmd = "open"
+                else:
+                    cmd = "File/dir does not exist:"
+                cmd = f"{cmd} '{l}'"
+                print(cmd)
+                os.system(cmd)
+
+    if is_write:
+        with open(json_fn, 'w') as f:
+            json.dump(data, f, indent=2, sort_keys=True)
+
+if __name__ == '__main__':
+    exit(main(parse_arguments()))

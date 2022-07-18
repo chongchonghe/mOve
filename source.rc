@@ -1,0 +1,39 @@
+if [[ -z "${MOVE_ROOT}" ]]; then
+    echo 'Warning: Please set environment variable MOVE_ROOT'
+    return
+fi
+
+if [[ -z "${MOVE_JSON}" ]]; then
+    export MOVE_JSON="${HOME}/.config/mOve/projects.json"
+fi
+
+# jump to a project directory
+function o() {
+    if [ "$#" -eq 1 ]; then
+        case $1 in
+            -h | -help )
+                o ;;
+            -e | -edit )
+                vi ${MOVE_JSON} ;;
+            -load )
+                . ${MOVE_ROOT}/mOve.rc ;;
+            * )
+                THISDIR="$(python ${MOVE_ROOT}/getdir.py $1)" && \
+                cd $THISDIR && echo $THISDIR ;;
+        esac
+        return
+    fi
+    if [ "$#" -gt 1 ]; then
+	python3 "${MOVE_ROOT}/o" $@
+    fi
+    if [ "$#" -lt 1 ]; then
+        echo "
+usage: o tag
+
+Jump to the directory tagged "tag"
+
+"
+        python "${MOVE_ROOT}/o" -h
+        return
+    fi
+}
