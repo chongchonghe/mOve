@@ -9,9 +9,11 @@ import pathlib
 
 def parse_arguments():
     parser = ArgumentParser(
+        prog="o",
         # description="A simple utility to manage projects",
         formatter_class=RawTextHelpFormatter)
-    parser.add_argument("action", help="""The action. One of the following:
+    parser.add_argument("action",
+                        help="""The action. One of the following:
 
 add/+: add a new tag and assign it to directory 'dir'
 update/++: similar to add/+ but will overwrite if tag already exists

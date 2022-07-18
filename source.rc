@@ -24,7 +24,7 @@ function o() {
         return
     fi
     if [ "$#" -gt 1 ]; then
-	python3 "${MOVE_ROOT}/o" $@
+	python3 "${MOVE_ROOT}/mOve" $@
     fi
     if [ "$#" -lt 1 ]; then
         echo "
@@ -33,7 +33,7 @@ usage: o tag
 Jump to the directory tagged "tag"
 
 "
-        python "${MOVE_ROOT}/o" -h
+        python "${MOVE_ROOT}/mOve" -h
         return
     fi
 }
