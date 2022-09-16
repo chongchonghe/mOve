@@ -92,32 +92,26 @@ def main(args, is_force=False):
     #                    input=data[args.tag]["dir"],)
     #     print(data[args.tag]["dir"], 'copied to clipboard')
     elif args.action == "start":
+        # running in tag directory
         tag = find_match(data.keys(), args.tag)
         if tag is None:
             print("Could not find a matched tag.")
             return
         prj = data[tag]
-        os.system("kitty @ launch --type=tab --cwd={} --tab-title '{}'".
-                  format(prj["dir"], tag))
+        os.system("kitty @ set-tab-title '{}'".format(tag))
+        # os.system("kitty @ launch --type=tab --cwd={} --tab-title '{}'".
+        #           format(prj["dir"], tag))
+        # cmd_base = r"kitty @ send-text --match-tab title:'{}' 'echo {}\x0d'".format(tag, text)
+        # cmd = r"kitty @ send-text --match-tab title:'{}' '".format(tag)
+        cmd = "echo"
         if "todo" in prj.keys():
-            text = "TODO: {}".format(prj["todo"])
-        else:
-            text = "TODO:"
-        cmd = r"kitty @ send-text --match-tab title:'{}' 'echo {}\x0d'".format(
-            tag, text)
-        os.system(cmd)
+            if len(prj["todo"]) > 0:
+                cmd += " \necho 'TODO: {}'".format(prj["todo"])
         if "readme" in prj.keys():
-            readme = prj["readme"]
-            # ext = os.path.splitext()[-1]
-            opn = "open"
-            text = "{} {}".format(opn, prj["readme"])
-        os.chdir(prj["dir"])
+            cmd += " \nopen '{}'".format(prj["readme"])
         for readme in ["README.org", "README", "README.md"]:
             if os.path.isfile(readme):
-                print("open -a Emacs.app " + readme)
-                os.system("open -a Emacs.app " + readme)
-        # if os.path.isfile("README.md"):
-        #     os.system("open README.md")
+                cmd += " \nopen -a Emacs.app {}".format(readme)
         if os.path.isfile("files"):
             with open("files", 'r') as f:
                 lines = f.readlines()
@@ -126,24 +120,24 @@ def main(args, is_force=False):
                 if len(l) >= 2:
                     if l[:2] == "# ":
                         continue
-                cmd = "Unknown file format or file does not exist:"
                 # if is http, open it in browser
                 if l[:4] == "http":
-                    cmd = "open"
+                    _cmd = "open"
                 # if is not http, check if the file exits
                 elif os.path.isfile(l):
                     ext = pathlib.Path(l).suffix
                     if ext in ['.pdf', '.png', '.jpg']:
-                        cmd = "open"
+                        _cmd = "open"
                     else:
-                        cmd = "open -a Emacs.app"
+                        _cmd = "open -a Emacs.app"
                 elif os.path.isdir(l):
-                    cmd = "open"
+                    _cmd = "open"
                 else:
-                    cmd = "File/dir does not exist:"
-                cmd = f"{cmd} '{l}'"
-                print(cmd)
-                os.system(cmd)
+                    _cmd = "# Unknown file format or file does not exist:"
+                _cmd += " " + l
+                cmd += " \n" + _cmd
+        print(cmd)
+        os.system(cmd)
 
     if is_write:
         with open(json_fn, 'w') as f:

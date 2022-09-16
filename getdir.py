@@ -33,7 +33,12 @@ def find_match(elements, obj):
         except IndexError:
             continue
     if len(exact_match) > 0:
-        return exact_match[0]
+        if len(exact_match) == 1:
+            return exact_match[0]
+        else:
+            for ele in exact_match:
+                if ele[:len(obj)] == obj:
+                    return ele
     else:
         if len(fuzzy_match) > 0:
             # return the shortest match
