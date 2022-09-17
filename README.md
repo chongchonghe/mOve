@@ -1,6 +1,6 @@
 # mOve
 
-A very simple tool to quickly move arround commonly used directories on your *nix systems.
+A very simple tool to quickly move arround commonly used directories on your *nix systems. The letter 'O' is capitalized because the primary command to run this program is `o`, which means 'move' or 'open'. 
 
 ## Description
 
@@ -15,11 +15,15 @@ With this program, you can tag the current directory with `o + <tag>` and naviga
 
 ### Installing
 
-Clone this directory and append the following line to the initialization file of your shell:
+To install mOve, clone this directory to `/path/to/mOve` (e.g. `${HOME}/local/source/mOve`) and paste the following texts into your SHELL initialization file (.bashrc, .zshrc, etc)
 
-`export MOVE_ROOT="/path/to/mOve" && source "${MOVE_ROOT}/source.rc"`
-
-Optional set `WO_JSON` to determine where the data file is stored. By default this is set to `${HOME}/.config/workon/projects.json`
+``` shell
+# >>> mOve initialize >>>
+export MOVE_ROOT="/path/to/mOve"
+export MOVE_JSON="${HOME}/.config/mOve/projects.json"
+source "${MOVE_ROOT}/source.rc"
+# <<< mOve initialize <<<
+```
 
 ### Executing program
 
@@ -55,3 +59,4 @@ This project is licensed under the MIT License - see the LICENSE.md file for det
 
 Inspiration, code snippets, etc.
 * [nnn](https://github.com/jarun/nnn)
+
