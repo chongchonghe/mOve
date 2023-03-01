@@ -104,14 +104,21 @@ def main(args, is_force=False):
         # cmd_base = r"kitty @ send-text --match-tab title:'{}' 'echo {}\x0d'".format(tag, text)
         # cmd = r"kitty @ send-text --match-tab title:'{}' '".format(tag)
         cmd = "echo"
-        if "todo" in prj.keys():
+        if "todo" in prj:
             if len(prj["todo"]) > 0:
                 cmd += " \necho 'TODO: {}'".format(prj["todo"])
-        if "readme" in prj.keys():
+        if "readme" in prj:
             cmd += " \nopen '{}'".format(prj["readme"])
         for readme in ["README.org", "README", "README.md"]:
             if os.path.isfile(readme):
                 cmd += " \nopen -a Emacs.app {}".format(readme)
+        if "files" in prj:
+            files = prj["files"]
+            if isinstance(files, str):
+                cmd += " \nopen -a Emacs.app {}".format(files)
+            else:
+                for thefile in files:
+                    cmd += " \nopen -a Emacs.app {}".format(thefile)
         if os.path.isfile("files"):
             with open("files", 'r') as f:
                 lines = f.readlines()

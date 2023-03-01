@@ -18,13 +18,13 @@ function o() {
             -load )
                 . ${MOVE_ROOT}/mOve.rc ;;
             * )
-                THISDIR="$(python ${MOVE_ROOT}/getdir.py $1)" && \
-                cd $THISDIR && echo $THISDIR ;;
+                THISDIR="$(python3 ${MOVE_ROOT}/getdir.py $1)" && \
+                    cd $THISDIR && echo $THISDIR ;;
         esac
         return
     fi
     if [ "$#" -gt 1 ]; then
-	python3 "${MOVE_ROOT}/mOve" $@
+	      python3 "${MOVE_ROOT}/mOve" $@
     fi
     if [ "$#" -lt 1 ]; then
         echo "
@@ -33,7 +33,22 @@ usage: o tag
 Jump to the directory tagged "tag"
 
 "
-        python "${MOVE_ROOT}/mOve" -h
+        Python3 "${MOVE_ROOT}/mOve" -h
         return
     fi
 }
+
+alias workon="${MOVE_ROOT}/workon"
+export MOVE_GETDIR="${MOVE_ROOT}/getdir.py"
+
+function wo() {
+    if [ "$#" -lt 1 ]; then
+	      echo "Usage: wo [project]"
+    fi
+    if [[ ! -z ${MOVE_ROOT} ]]; then
+	      THISDIR="$(python ${MOVE_ROOT}/getdir.py $1)" && \
+	          cd $THISDIR && echo $THISDIR
+	      python3 "${MOVE_ROOT}/mOve" start $@
+    fi
+}
+
